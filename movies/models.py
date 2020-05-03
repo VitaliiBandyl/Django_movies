@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import date
-
+from django.shortcuts import reverse
 
 class Category(models.Model):
     """Categories"""
@@ -63,6 +63,9 @@ class Movie(models.Model):
     category = models.ForeignKey(Category, verbose_name="Category", on_delete=models.SET_NULL, null=True)
     url = models.SlugField(max_length=150, unique=True)
     draft = models.BooleanField("draft", default=False)
+
+    def get_absolute_url(self):
+        return reverse('movie_detail_url', kwargs={'slug': self.url})
 
     def __str__(self):
         return self.title
