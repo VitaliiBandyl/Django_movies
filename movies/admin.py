@@ -1,10 +1,9 @@
-from django.contrib import admin
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django import forms
+from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .models import Category, Actor, Genre, Movie, MovieShot, RatingStar, Rating, Reviews
-
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 
 
 class MovieAdminForm(forms.ModelForm):
@@ -44,6 +43,7 @@ class MovieAdmin(admin.ModelAdmin):
     list_filter = ('category', 'year')
     list_editable = ['draft']
     search_fields = ('title', 'category__name')
+    actions = ['publish', 'unpublish']
     inlines = [MovieShotsInline, ReviewInline]
     readonly_fields = ['get_image']
     form = MovieAdminForm
@@ -73,6 +73,30 @@ class MovieAdmin(admin.ModelAdmin):
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.poster.url} width="100" height="110"')
+
+    def unpublish(self, request, queryset):
+        """Unpublish Movie"""
+        row_update = queryset.update(draft=True)
+        if row_update == 1:
+            message_bit = '1 Movie was unpublished successfully.'
+        else:
+            message_bit = f'{row_update} Movies were unpublished successfully.'
+        self.message_user(request, message_bit)
+
+    unpublish.short_description = 'Unpublic Movie'
+    unpublish.allowed_permissions = ('change',)
+
+    def publish(self, request, queryset):
+        """Publish Movie"""
+        row_update = queryset.update(draft=False)
+        if row_update == 1:
+            message_bit = '1 Movie was published successfully.'
+        else:
+            message_bit = f'{row_update} Movies were published successfully.'
+        self.message_user(request, message_bit)
+
+    publish.short_description = 'Public Movie'
+    publish.allowed_permissions = ('change',)
 
     get_image.short_description = "Poster"
 
